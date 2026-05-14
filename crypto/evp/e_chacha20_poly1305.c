@@ -43,6 +43,22 @@ const EVP_CIPHER *EVP_chacha20_poly1305(void)
 {
     return (&chacha20_poly1305);
 }
+
+static const EVP_CIPHER chacha20_poly1305_draft = {
+    NID_chacha20_poly1305_draft,
+    1, /* block_size */
+    CHACHA_KEY_SIZE, /* key_len */
+    0, /* iv_len, none */
+    EVP_CIPH_FLAG_AEAD_CIPHER | EVP_CIPH_CUSTOM_IV |
+    EVP_CIPH_ALWAYS_CALL_INIT | EVP_CIPH_CTRL_INIT |
+    EVP_CIPH_CUSTOM_COPY | EVP_CIPH_FLAG_CUSTOM_CIPHER,
+    EVP_ORIG_GLOBAL
+};
+
+const EVP_CIPHER *EVP_chacha20_poly1305_draft(void)
+{
+    return (&chacha20_poly1305_draft);
+}
 #endif
 #else
 NON_EMPTY_TRANSLATION_UNIT
