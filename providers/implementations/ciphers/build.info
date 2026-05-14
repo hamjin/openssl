@@ -213,6 +213,7 @@ IF[{- !$disabled{chacha} -}]
       cipher_chacha20.c cipher_chacha20_hw.c
  IF[{- !$disabled{poly1305} -}]
   SOURCE[$CHACHAPOLY_GOAL]=\
-      cipher_chacha20_poly1305.c cipher_chacha20_poly1305_hw.c
+      cipher_chacha20_poly1305.c cipher_chacha20_poly1305_hw.c\
+      cipher_chacha20_d_poly1305.c cipher_chacha20_d_poly1305_hw.c
  ENDIF
 ENDIF

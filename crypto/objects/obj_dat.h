@@ -1356,7 +1356,7 @@ static const unsigned char so[9582] = {
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x01,0x09,0x10,0x03,0x11,  /* [ 9570] OBJ_id_alg_hss_lms_hashsig */
 };
 
-#define NUM_NID 1502
+#define NUM_NID 1503
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2860,9 +2860,10 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"id-smime-ori", "id-smime-ori", NID_id_smime_ori, 10, &so[9549]},
     {"id-smime-ori-kem", "id-smime-ori-kem", NID_id_smime_ori_kem, 11, &so[9559]},
     {"id-alg-hss-lms-hashsig", "id-alg-hss-lms-hashsig", NID_id_alg_hss_lms_hashsig, 11, &so[9570]},
+    {"ChaCha20-Poly1305-D", "chacha20-poly1305-draft", NID_chacha20_poly1305_draft},
 };
 
-#define NUM_SN 1493
+#define NUM_SN 1494
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
      419,    /* "AES-128-CBC" */
@@ -2994,6 +2995,7 @@ static const unsigned int sn_objs[NUM_SN] = {
      417,    /* "CSPName" */
     1019,    /* "ChaCha20" */
     1018,    /* "ChaCha20-Poly1305" */
+    1502,    /* "ChaCha20-Poly1305-D" */
      367,    /* "CrlID" */
      391,    /* "DC" */
       31,    /* "DES-CBC" */
@@ -4359,7 +4361,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1289,    /* "zstd" */
 };
 
-#define NUM_LN 1493
+#define NUM_LN 1494
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -4978,6 +4980,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      883,    /* "certificateRevocationList" */
     1019,    /* "chacha20" */
     1018,    /* "chacha20-poly1305" */
+    1502,    /* "chacha20-poly1305-draft" */
       54,    /* "challengePassword" */
      407,    /* "characteristic-two-field" */
      395,    /* "clearance" */
