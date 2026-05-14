@@ -3,7 +3,8 @@
 =head1 NAME
 
 EVP_chacha20,
-EVP_chacha20_poly1305
+EVP_chacha20_poly1305,
+EVP_chacha20_poly1305_draft
 - EVP ChaCha20 stream cipher
 
 =head1 SYNOPSIS
@@ -12,6 +13,7 @@ EVP_chacha20_poly1305
 
  const EVP_CIPHER *EVP_chacha20(void);
  const EVP_CIPHER *EVP_chacha20_poly1305(void);
+ const EVP_CIPHER *EVP_chacha20_poly1305_draft(void);
 
 =head1 DESCRIPTION
 
@@ -37,6 +39,24 @@ Authenticated encryption with ChaCha20-Poly1305. Like EVP_chacha20(), the key
 is 256 bits and the IV is 96 bits. This supports additional authenticated data
 (AAD) and produces a 128-bit authentication tag. See the
 L<EVP_EncryptInit(3)/AEAD INTERFACE> section for more information.
+
+=item EVP_chacha20_poly1305_draft()
+
+Authenticated encryption with the legacy "draft" ChaCha20-Poly1305 construction
+from
+L<draft-agl-tls-chacha20poly1305-04|https://datatracker.ietf.org/doc/html/draft-agl-tls-chacha20poly1305-04>.
+Provided for interoperability with TLS 1.2 peers that only implement the
+pre-RFC 7905 ciphersuites
+(B<ECDHE-RSA-CHACHA20-POLY1305-OLD>,
+B<ECDHE-ECDSA-CHACHA20-POLY1305-OLD>,
+B<DHE-RSA-CHACHA20-POLY1305-OLD>).
+The key is 256 bits. Unlike EVP_chacha20_poly1305() the cipher takes no IV
+input; the nonce is derived from the TLS record sequence number passed via
+L<EVP_CIPHER_CTX_ctrl(3)> with B<EVP_CTRL_AEAD_TLS1_AAD>. Length fields fed
+into Poly1305 are unpadded and serialized as 64-bit little-endian values
+(differing from RFC 7905). Produces a 128-bit authentication tag.
+This construction is insecure against modern attacks; do not use for new
+protocols.
 
 =back
 
