@@ -1234,6 +1234,19 @@ static int ssl_post_record_layer_select(SSL_CONNECTION *s, int direction)
     return 1;
 }
 
+static void ssl_set_tls13_version_draft(OSSL_RECORD_LAYER *rl,
+                                         const OSSL_RECORD_METHOD *meth,
+                                         int version_draft)
+{
+    if (meth == &ossl_tls_record_method
+        || meth == &ossl_dtls_record_method
+#ifndef OPENSSL_NO_KTLS
+        || meth == &ossl_ktls_record_method
+#endif
+        )
+        tls_set_tls13_version_draft(rl, version_draft);
+}
+
 int ssl_set_new_record_layer(SSL_CONNECTION *s, int version,
     int direction, int level,
     unsigned char *secret, size_t secretlen,
@@ -1448,6 +1461,7 @@ int ssl_set_new_record_layer(SSL_CONNECTION *s, int version,
         }
         break;
     }
+    ssl_set_tls13_version_draft(newrl, meth, s->version_draft);
 
     /*
      * Free the old record layer if we have one except in the case of DTLS when
@@ -1478,6 +1492,10 @@ int ssl_set_record_protocol_version(SSL_CONNECTION *s, int vers)
         return 0;
     s->rlayer.rrlmethod->set_protocol_version(s->rlayer.rrl, s->version);
     s->rlayer.wrlmethod->set_protocol_version(s->rlayer.wrl, s->version);
+    ssl_set_tls13_version_draft(s->rlayer.rrl, s->rlayer.rrlmethod,
+                                s->version_draft);
+    ssl_set_tls13_version_draft(s->rlayer.wrl, s->rlayer.wrlmethod,
+                                s->version_draft);
 
     return 1;
 }

@@ -9,12 +9,16 @@
 
 #include <string.h>
 #include <openssl/ssl.h>
+#include <openssl/ssl3.h>
 #include "helpers/quictestlib.h"
 #include "internal/quic_error.h"
+#include "internal/packet.h"
 #include "testutil.h"
 
 static char *cert = NULL;
 static char *privkey = NULL;
+
+#define NON_RFC_TLS13_TEST_VERSION 0x7f7f
 
 /*
  * Basic test that just creates a connection and sends some data without any
@@ -222,6 +226,90 @@ err:
     return testresult;
 }
 
+static int set_server_hello_selected_version_cb(QTEST_FAULT *fault,
+    unsigned char *msg, size_t msglen, void *handshakecbarg)
+{
+    unsigned int msgtype, type, extlen;
+    unsigned long payloadlen;
+    unsigned char *p;
+    unsigned int selected_version = *(unsigned int *)handshakecbarg;
+    PACKET pkt;
+
+    if (!PACKET_buf_init(&pkt, msg, msglen)
+        || !PACKET_get_1(&pkt, &msgtype)
+        || !PACKET_get_net_3(&pkt, &payloadlen)
+        || PACKET_remaining(&pkt) != payloadlen)
+        return 0;
+
+    if (msgtype != SSL3_MT_SERVER_HELLO)
+        return 1;
+
+    /*
+     * ServerHello payload:
+     * legacy_version(2), random(32), legacy_session_id_echo(1+n),
+     * cipher_suite(2), legacy_compression_method(1), extensions(2+n).
+     */
+    if (!PACKET_forward(&pkt, 2 + SSL3_RANDOM_SIZE)
+        || !PACKET_get_1(&pkt, &extlen)
+        || !PACKET_forward(&pkt, extlen)
+        || !PACKET_forward(&pkt, 2 + 1)
+        || !PACKET_get_net_2(&pkt, &extlen))
+        return 0;
+
+    while (PACKET_remaining(&pkt) > 0) {
+        p = (unsigned char *)PACKET_data(&pkt);
+        if (!PACKET_get_net_2(&pkt, &type)
+            || !PACKET_get_net_2(&pkt, &extlen)
+            || PACKET_remaining(&pkt) < extlen)
+            return 0;
+        if (type == TLSEXT_TYPE_supported_versions && extlen == 2) {
+            p[4] = (unsigned char)(selected_version >> 8);
+            p[5] = (unsigned char)selected_version;
+            return 1;
+        }
+        if (!PACKET_forward(&pkt, extlen))
+            return 0;
+    }
+
+    return 0;
+}
+
+static int test_server_hello_non_rfc_tls13_version(void)
+{
+    int testresult = 0;
+    unsigned int selected_version = NON_RFC_TLS13_TEST_VERSION;
+    SSL_CTX *cctx = SSL_CTX_new(OSSL_QUIC_client_method());
+    QUIC_TSERVER *qtserv = NULL;
+    SSL *cssl = NULL;
+    QTEST_FAULT *fault = NULL;
+
+    if (!TEST_ptr(cctx))
+        goto err;
+
+    if (!TEST_true(qtest_create_quic_objects(NULL, cctx, NULL, cert, privkey, 0,
+            &qtserv, &cssl, &fault, NULL)))
+        goto err;
+
+    if (!TEST_true(qtest_fault_set_handshake_listener(fault,
+            set_server_hello_selected_version_cb, &selected_version)))
+        goto err;
+
+    if (!TEST_false(qtest_create_quic_connection(qtserv, cssl)))
+        goto err;
+
+    if (!TEST_true(qtest_check_server_transport_err(qtserv,
+            OSSL_QUIC_ERR_CRYPTO_ERR(SSL_AD_ILLEGAL_PARAMETER))))
+        goto err;
+
+    testresult = 1;
+err:
+    qtest_fault_free(fault);
+    SSL_free(cssl);
+    ossl_quic_tserver_free(qtserv);
+    SSL_CTX_free(cctx);
+    return testresult;
+}
+
 /*
  * Test that corrupted packets/datagrams are dropped and retransmitted
  */
@@ -394,6 +482,7 @@ int setup_tests(void)
     ADD_TEST(test_basic);
     ADD_TEST(test_unknown_frame);
     ADD_ALL_TESTS(test_drop_extensions, 2);
+    ADD_TEST(test_server_hello_non_rfc_tls13_version);
     ADD_ALL_TESTS(test_corrupted_data, 2);
 
     return 1;

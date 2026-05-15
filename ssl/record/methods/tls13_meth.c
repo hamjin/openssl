@@ -229,9 +229,10 @@ static int tls13_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *recs,
             && EVP_CipherUpdate(enc_ctx, NULL, &lenu, NULL,
                    (unsigned int)rec->length)
                 <= 0)
-        || EVP_CipherUpdate(enc_ctx, NULL, &lenu, recheader,
-               sizeof(recheader))
-            <= 0
+        || (rl->tls13_version_draft != TLS1_3_VERSION_DRAFT_23
+            && EVP_CipherUpdate(enc_ctx, NULL, &lenu, recheader,
+                   sizeof(recheader))
+                <= 0)
         || EVP_CipherUpdate(enc_ctx, rec->data, &lenu, rec->input,
                (unsigned int)rec->length)
             <= 0

@@ -1162,7 +1162,7 @@ int tls_parse_ctos_cookie(SSL_CONNECTION *s, PACKET *pkt, unsigned int context,
     }
     if (!WPACKET_put_bytes_u16(&hrrpkt, TLSEXT_TYPE_supported_versions)
         || !WPACKET_start_sub_packet_u16(&hrrpkt)
-        || !WPACKET_put_bytes_u16(&hrrpkt, s->version)
+        || !WPACKET_put_bytes_u16(&hrrpkt, s->version_draft)
         || !WPACKET_close(&hrrpkt)) {
         WPACKET_cleanup(&hrrpkt);
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
@@ -1920,7 +1920,7 @@ EXT_RETURN tls_construct_stoc_supported_versions(SSL_CONNECTION *s, WPACKET *pkt
 
     if (!WPACKET_put_bytes_u16(pkt, TLSEXT_TYPE_supported_versions)
         || !WPACKET_start_sub_packet_u16(pkt)
-        || !WPACKET_put_bytes_u16(pkt, s->version)
+        || !WPACKET_put_bytes_u16(pkt, s->version_draft)
         || !WPACKET_close(pkt)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
         return EXT_RETURN_FAIL;

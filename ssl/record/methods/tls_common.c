@@ -1271,6 +1271,7 @@ int tls_int_new_record_layer(OSSL_LIB_CTX *libctx, const char *propq, int vers,
     rl->propq = propq;
 
     rl->version = vers;
+    rl->tls13_version_draft = TLS1_3_VERSION;
     rl->role = role;
     rl->direction = direction;
     rl->level = level;
@@ -1957,6 +1958,11 @@ int tls_default_set_protocol_version(OSSL_RECORD_LAYER *rl, int version)
         return 0;
 
     return 1;
+}
+
+void tls_set_tls13_version_draft(OSSL_RECORD_LAYER *rl, int version_draft)
+{
+    rl->tls13_version_draft = version_draft;
 }
 
 int tls_set_protocol_version(OSSL_RECORD_LAYER *rl, int version)

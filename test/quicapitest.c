@@ -436,6 +436,21 @@ err:
 }
 
 #if defined(DO_SSL_TRACE_TEST)
+static int mem_contains(const char *haystack, size_t haystack_len,
+                        const char *needle)
+{
+    size_t needle_len = strlen(needle), i;
+
+    if (needle_len == 0 || haystack_len < needle_len)
+        return 0;
+
+    for (i = 0; i <= haystack_len - needle_len; i++)
+        if (memcmp(haystack + i, needle, needle_len) == 0)
+            return 1;
+
+    return 0;
+}
+
 /*
  * Tests that the SSL_trace() msg_callback works as expected with a QUIC
  * connection. This also provides testing of the msg_callback at the same time.
@@ -447,6 +462,8 @@ static int test_ssl_trace(void)
     QUIC_TSERVER *qtserv = NULL;
     int testresult = 0;
     BIO *bio = NULL;
+    char *trace = NULL;
+    long trace_len;
     char *reffile = NULL;
 
     if (!TEST_ptr(cctx = SSL_CTX_new_ex(libctx, NULL, OSSL_QUIC_client_method()))
@@ -463,6 +480,11 @@ static int test_ssl_trace(void)
     SSL_set_msg_callback_arg(clientquic, bio);
 
     if (!TEST_true(qtest_create_quic_connection(qtserv, clientquic)))
+        goto err;
+
+    trace_len = BIO_get_mem_data(bio, &trace);
+    if (!TEST_long_ge(trace_len, 0)
+        || !TEST_false(mem_contains(trace, (size_t)trace_len, "draft")))
         goto err;
 
     /* Skip the comparison of the trace when the fips provider is used. */

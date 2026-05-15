@@ -741,6 +741,22 @@ EXT_RETURN tls_construct_ctos_supported_versions(SSL_CONNECTION *s, WPACKET *pkt
     }
 
     for (currv = max_version; currv >= min_version; currv--) {
+        if (currv == TLS1_3_VERSION) {
+            if (!WPACKET_put_bytes_u16(pkt, TLS1_3_VERSION)) {
+                SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
+                return EXT_RETURN_FAIL;
+            }
+            if (SSL_IS_QUIC_HANDSHAKE(s))
+                continue;
+            if (!WPACKET_put_bytes_u16(pkt, TLS1_3_VERSION_DRAFT_28)
+                || !WPACKET_put_bytes_u16(pkt, TLS1_3_VERSION_DRAFT_27)
+                || !WPACKET_put_bytes_u16(pkt, TLS1_3_VERSION_DRAFT_26)
+                || !WPACKET_put_bytes_u16(pkt, TLS1_3_VERSION_DRAFT_23)) {
+                SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
+                return EXT_RETURN_FAIL;
+            }
+            continue;
+        }
         if (!WPACKET_put_bytes_u16(pkt, currv)) {
             SSLfatal(s, SSL_AD_INTERNAL_ERROR, ERR_R_INTERNAL_ERROR);
             return EXT_RETURN_FAIL;
@@ -2124,6 +2140,20 @@ int tls_parse_stoc_supported_versions(SSL_CONNECTION *s, PACKET *pkt,
         || PACKET_remaining(pkt) != 0) {
         SSLfatal(s, SSL_AD_DECODE_ERROR, SSL_R_LENGTH_MISMATCH);
         return 0;
+    }
+
+    if (SSL_IS_QUIC_HANDSHAKE(s) && version != TLS1_3_VERSION) {
+        SSLfatal(s, SSL_AD_ILLEGAL_PARAMETER,
+                 SSL_R_BAD_PROTOCOL_VERSION_NUMBER);
+        return 0;
+    }
+
+    if (version == TLS1_3_VERSION_DRAFT_23
+        || version == TLS1_3_VERSION_DRAFT_26
+        || version == TLS1_3_VERSION_DRAFT_27
+        || version == TLS1_3_VERSION_DRAFT_28) {
+        s->version_draft = version;
+        version = TLS1_3_VERSION;
     }
 
     /*

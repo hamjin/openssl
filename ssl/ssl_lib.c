@@ -598,6 +598,7 @@ int ossl_ssl_connection_reset(SSL *s)
     ossl_statem_clear(sc);
 
     sc->version = s->method->version;
+    sc->version_draft = TLS1_3_VERSION;
     sc->client_version = sc->version;
     sc->rwstate = SSL_NOTHING;
 
@@ -743,6 +744,7 @@ SSL *ossl_ssl_connection_new_int(SSL_CTX *ctx, SSL *user_ssl,
 
     RECORD_LAYER_init(&s->rlayer, s);
 
+    s->version_draft = TLS1_3_VERSION;
     s->options = ctx->options;
 
     s->dane.flags = ctx->dane.flags;
@@ -5401,6 +5403,7 @@ SSL *SSL_dup(SSL *s)
     if (!ssl_dane_dup(retsc, sc))
         goto err;
     retsc->version = sc->version;
+    retsc->version_draft = sc->version_draft;
     retsc->options = sc->options;
     retsc->min_proto_version = sc->min_proto_version;
     retsc->max_proto_version = sc->max_proto_version;

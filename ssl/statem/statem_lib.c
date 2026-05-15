@@ -1840,6 +1840,38 @@ static const version_info dtls_version_table[] = {
     { 0, NULL, NULL },
 };
 
+static int tls13_wire_version_to_internal(unsigned int wire_version)
+{
+    switch (wire_version) {
+    case TLS1_3_VERSION:
+    case TLS1_3_VERSION_DRAFT_23:
+    case TLS1_3_VERSION_DRAFT_26:
+    case TLS1_3_VERSION_DRAFT_27:
+    case TLS1_3_VERSION_DRAFT_28:
+        return TLS1_3_VERSION;
+    default:
+        return 0;
+    }
+}
+
+static int tls13_wire_version_rank(unsigned int wire_version)
+{
+    switch (wire_version) {
+    case TLS1_3_VERSION:
+        return 5;
+    case TLS1_3_VERSION_DRAFT_28:
+        return 4;
+    case TLS1_3_VERSION_DRAFT_27:
+        return 3;
+    case TLS1_3_VERSION_DRAFT_26:
+        return 2;
+    case TLS1_3_VERSION_DRAFT_23:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
 /*
  * ssl_method_error - Check whether an SSL_METHOD is enabled.
  *
@@ -2179,6 +2211,7 @@ int ssl_choose_server_version(SSL_CONNECTION *s, CLIENTHELLO_MSG *hello,
     if (suppversions->present && !SSL_CONNECTION_IS_DTLS(s)) {
         unsigned int candidate_vers = 0;
         unsigned int best_vers = 0;
+        unsigned int best_wire_vers = 0;
         const SSL_METHOD *best_method = NULL;
         PACKET versionslist;
 
@@ -2202,10 +2235,28 @@ int ssl_choose_server_version(SSL_CONNECTION *s, CLIENTHELLO_MSG *hello,
             return SSL_R_BAD_LEGACY_VERSION;
 
         while (PACKET_get_net_2(&versionslist, &candidate_vers)) {
-            if (ssl_version_cmp(s, candidate_vers, best_vers) <= 0)
-                continue;
-            if (ssl_version_supported(s, candidate_vers, &best_method))
+            unsigned int wire_candidate_vers = candidate_vers;
+            int candidate_rank = 0;
+
+            if (!SSL_IS_QUIC_HANDSHAKE(s))
+                candidate_vers = tls13_wire_version_to_internal(candidate_vers);
+            else
+                candidate_vers = 0;
+            if (candidate_vers == 0)
+                candidate_vers = wire_candidate_vers;
+            else
+                candidate_rank = tls13_wire_version_rank(wire_candidate_vers);
+
+            if (ssl_version_cmp(s, candidate_vers, best_vers) <= 0) {
+                if (candidate_vers != TLS1_3_VERSION
+                    || candidate_rank <= tls13_wire_version_rank(best_wire_vers))
+                    continue;
+            }
+            if (ssl_version_supported(s, candidate_vers, &best_method)) {
                 best_vers = candidate_vers;
+                if (candidate_vers == TLS1_3_VERSION)
+                    best_wire_vers = wire_candidate_vers;
+            }
         }
         if (PACKET_remaining(&versionslist) != 0) {
             /* Trailing data? */
@@ -2229,6 +2280,9 @@ int ssl_choose_server_version(SSL_CONNECTION *s, CLIENTHELLO_MSG *hello,
             }
             check_for_downgrade(s, best_vers, dgrd);
             s->version = best_vers;
+            if (best_vers == TLS1_3_VERSION)
+                s->version_draft = best_wire_vers == 0 ? TLS1_3_VERSION
+                                                       : best_wire_vers;
             ssl->method = best_method;
             if (!ssl_set_record_protocol_version(s, best_vers))
                 return ERR_R_INTERNAL_ERROR;

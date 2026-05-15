@@ -35,6 +35,11 @@ extern "C" {
 #ifndef OPENSSL_NO_DEPRECATED_3_0
 #define TLS_MAX_VERSION TLS1_3_VERSION
 #endif
+#define TLS1_3_VERSION_DRAFT_TXT_23 "TLS 1.3 (draft 23)"
+#define TLS1_3_VERSION_DRAFT_TXT_26 "TLS 1.3 (draft 26)"
+#define TLS1_3_VERSION_DRAFT_TXT_27 "TLS 1.3 (draft 27)"
+#define TLS1_3_VERSION_DRAFT_TXT_28 "TLS 1.3 (draft 28)"
+#define TLS1_3_VERSION_DRAFT_TXT TLS1_3_VERSION_DRAFT_TXT_28
 
 /* Special value for method supporting multiple versions */
 #define TLS_ANY_VERSION 0x10000
