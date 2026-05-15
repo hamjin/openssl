@@ -1359,6 +1359,7 @@ struct ssl_connection_st {
      * TLS1_3_VERSION, DTLS1_VERSION, DTLS1_2_VERSION, DTLS1_3_VERSION)
      */
     int version;
+    int version_draft;
 
     /*
      * The negotiated version for the connection. Initially PROTO_VERSION_UNSET.

@@ -296,7 +296,8 @@ static int tls13_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *recs,
      */
     if ((mode == EVP_CIPH_CCM_MODE
             && EVP_CipherUpdate(enc_ctx, NULL, &lenu, NULL, (int)rec->length) <= 0)
-        || EVP_CipherUpdate(enc_ctx, NULL, &lenu, recheader, (int)hdrlen) <= 0
+        || ((isdtls || rl->tls13_version_draft != TLS1_3_VERSION_DRAFT_23)
+            && EVP_CipherUpdate(enc_ctx, NULL, &lenu, recheader, (int)hdrlen) <= 0)
         || EVP_CipherUpdate(enc_ctx, rec->data, &lenu, rec->input, (int)rec->length) <= 0
         || EVP_CipherFinal_ex(enc_ctx, rec->data + lenu, &lenf) <= 0
         || (size_t)lenu + lenf != rec->length) {

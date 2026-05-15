@@ -328,6 +328,7 @@ struct ossl_record_layer_st {
     /* TLSv1.3 record padding */
     size_t block_padding;
     size_t hs_padding;
+    int tls13_version_draft;
 
     /* TLSv1.0/TLSv1.1/TLSv1.2 */
     int use_etm;

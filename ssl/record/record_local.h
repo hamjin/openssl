@@ -19,4 +19,6 @@
 
 #define MAX_WARN_ALERT_COUNT 5
 
+void tls_set_tls13_version_draft(OSSL_RECORD_LAYER *rl, int version_draft);
+
 #endif /* !defined(OSSL_SSL_RECORD_RECORD_LOCAL_H) */
