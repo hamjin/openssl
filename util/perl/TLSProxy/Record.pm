@@ -38,6 +38,10 @@ my %record_type = (
 use constant {
     VERS_DTLS_1_2 => 0xfefd,
     VERS_DTLS_1 => 0xfeff,
+    VERS_TLS_1_3_DRAFT_23 => 0x7f17,
+    VERS_TLS_1_3_DRAFT_26 => 0x7f1a,
+    VERS_TLS_1_3_DRAFT_27 => 0x7f1b,
+    VERS_TLS_1_3_DRAFT_28 => 0x7f1c,
     VERS_TLS_1_4 => 0x0305,
     VERS_TLS_1_3 => 0x0304,
     VERS_TLS_1_2 => 0x0303,
@@ -50,6 +54,10 @@ use constant {
 our %tls_version = (
     VERS_DTLS_1_2, "DTLS1.2",
     VERS_DTLS_1, "DTLS1",
+    VERS_TLS_1_3_DRAFT_23, "TLS1.3 draft 23",
+    VERS_TLS_1_3_DRAFT_26, "TLS1.3 draft 26",
+    VERS_TLS_1_3_DRAFT_27, "TLS1.3 draft 27",
+    VERS_TLS_1_3_DRAFT_28, "TLS1.3 draft 28",
     VERS_TLS_1_3, "TLS1.3",
     VERS_TLS_1_2, "TLS1.2",
     VERS_TLS_1_1, "TLS1.1",

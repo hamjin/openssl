@@ -77,8 +77,19 @@ int compare_with_reference_file(BIO *membio, const char *reffile)
         if (!TEST_str_eq(buf1, buf2))
             goto err;
     }
-    if (!TEST_true(BIO_eof(file))
-        || !TEST_true(BIO_eof(membio)))
+    if (!TEST_true(BIO_eof(file)))
+        goto err;
+    while (!BIO_eof(membio)) {
+        if (BIO_gets(membio, buf2, sizeof(buf2)) <= 0)
+            break;
+        strip_line_ends(buf2);
+        if (buf2[0] != '\0') {
+            TEST_error("Extra actual line after ref EOF");
+            TEST_info("%s", buf2);
+            goto err;
+        }
+    }
+    if (!TEST_true(BIO_eof(membio)))
         goto err;
 
     ret = 1;

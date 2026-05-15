@@ -49,8 +49,12 @@ Header:
           rsa_pkcs1_sha384 (0x0501)
           rsa_pkcs1_sha512 (0x0601)
           sm2sig_sm3 (0x0708)
-        extension_type=supported_versions(43), length=3
+        extension_type=supported_versions(43), length=11
           TLS 1.3 (772)
+          TLS 1.3 (draft 28) (32540)
+          TLS 1.3 (draft 27) (32539)
+          TLS 1.3 (draft 26) (32538)
+          TLS 1.3 (draft 23) (32535)
         extension_type=psk_key_exchange_modes(45), length=2
           psk_dhe_ke (1)
         extension_type=key_share(51), length=806
@@ -241,4 +245,3 @@ Header:
         ticket_nonce (len=8): ?
         ticket (len=192): ?
         No extensions
-

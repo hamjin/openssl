@@ -112,7 +112,11 @@ sub parse
 
     if ($random eq $hrrrandom) {
         TLSProxy::Proxy->is_tls13(1);
-    } elsif ($neg_version == TLSProxy::Record::VERS_TLS_1_3()) {
+    } elsif ($neg_version == TLSProxy::Record::VERS_TLS_1_3()
+             || $neg_version == TLSProxy::Record::VERS_TLS_1_3_DRAFT_23()
+             || $neg_version == TLSProxy::Record::VERS_TLS_1_3_DRAFT_26()
+             || $neg_version == TLSProxy::Record::VERS_TLS_1_3_DRAFT_27()
+             || $neg_version == TLSProxy::Record::VERS_TLS_1_3_DRAFT_28()) {
         TLSProxy::Proxy->is_tls13(1);
 
         TLSProxy::Record->server_encrypting(1);
